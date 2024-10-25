@@ -835,13 +835,13 @@ app.patch('/Pedido/:pedido', (req, res) => {
 })
 
 // Se anexan EndPoints para Ecommerce
-app.patch('/Cliente/:codigo', async (req, res) => {
+app.patch('/ClienteEC/:Codigo', async (req, res) => {
   try {
-    const {codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
+    const {Codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
     const { CardCode, CardName, Phone1 } = req.body; //Obtener los datos del cliente desde el cuerpo de la solicitud
 
     //Validar que el CardCode del cuerpo coincida con el parametro
-    if (codigo !== CardCode){
+    if (Codigo !== CardCode){
       return res.status(400).json({
         success: false,
         message: 'El CardCode en el cuerpo de la solicitud no coincide con el codigo de la URL.',
@@ -865,11 +865,45 @@ app.patch('/Cliente/:codigo', async (req, res) => {
     console.error('Error al actualizar el cliente:', error);
     res.status(500).json({
       success: false,
-      message: 'Ocurrio un error al actualizar el cliente.',
+      message: 'Ocurrió un error al actualizar el cliente.',
+      error: error.message  // Agregar más detalles del error
     });
   
   }
-});
+})
+
+app.post('/ClienteEC', async (req, res) => {
+  try{
+    //obtener los datos del cuerpo de la solicitud
+    const {CardName, GroupCode, LicTradNum, ChannlBP, ListNum, GroupNum, Serie} = req.body;
+
+    //Definir los codigos de serie según la lista
+    const seriesCatalogo = {
+      MEDICO: 77,
+      USAPUB: 79,
+      Manual1: 1,
+      PUBLICO: 76,
+      Manual2: 2,
+      DISTRIB: 78,
+      PROSPECT: 164,
+      NAL_SERV: 82,
+      NAL_PROD: 81,
+      EXT_PROD: 83,
+      NAL_INS: 80,
+      EMP: 212
+    };
+
+    //Verificamos si la serie seleccionada existe en el catalogo
+    if(!seriesCatalogo[Serie]) {
+      return res.status(400).json({
+        success: false,
+        message: 'La serie no es valida.'
+      });
+    }
+
+    //Se crea el objeto que con los datos que seran enviados a sap
+  }
+})
 
 
 
