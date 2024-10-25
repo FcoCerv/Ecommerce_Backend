@@ -1,0 +1,10 @@
+2024-08-12 19:42:34 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\powerhost\AppData\Roaming\npm\node_modules\qckwinsvc\node_modules\node-windows\lib\wrapper.js --file C:\engel_backend\index.js --log "SAP-SalesForceSync wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-08-12 19:42:34 - Started 13288
+2024-08-12 19:43:18 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\powerhost\AppData\Roaming\npm\node_modules\qckwinsvc\node_modules\node-windows\lib\wrapper.js --file C:\engel_backend\index.js --log "SAP-SalesForceSync wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-08-12 19:43:18 - Started 13064
+2024-08-12 19:45:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\powerhost\AppData\Roaming\npm\node_modules\qckwinsvc\node_modules\node-windows\lib\wrapper.js --file C:\engel_backend\index.js --log "SAP-SalesForceSync wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-08-12 19:45:28 - Started 11616
+2024-08-12 19:55:39 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\powerhost\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\engel_backend\index.js --scriptoptions= --log "SAP-SalesForceSync wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-08-12 19:55:39 - Started 11240
+2024-08-12 19:55:49 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\powerhost\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\engel_backend\index.js --scriptoptions= --log "SAP-SalesForceSync wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-08-12 19:55:50 - Started 12688
