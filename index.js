@@ -870,7 +870,66 @@ app.patch('/ClienteEC/:Codigo', async (req, res) => {
     });
   
   }
-})
+});
+app.post('/ClienteEC', async (req, res) => {
+  try{
+    //obtener los datos del cuerpo de la solicitud
+    const {CardName, GroupCode, LicTradNum, ChannlBP, ListNum, GroupNum, Serie} = req.body;
+
+    //Definir los codigos de serie según la lista
+    const seriesCatalogo = {
+      MEDICO: 77,
+      USAPUB: 79,
+      Manual1: 1,
+      PUBLICO: 76,
+      Manual2: 2,
+      DISTRIB: 78,
+      PROSPECT: 164,
+      NAL_SERV: 82,
+      NAL_PROD: 81,
+      EXT_PROD: 83,
+      NAL_INS: 80,
+      EMP: 212
+    };
+
+    //Verificamos si la serie seleccionada existe en el catalogo
+    if(!seriesCatalogo[Serie]) {
+      return res.status(400).json({
+        success: false,
+        message: 'La serie no es valida.'
+      });
+    }
+
+    //Se crea el objeto que con los datos que seran enviados a sap
+    const newBusinessPartner = {
+      CardName,         // Código del cliente (incluye serie y código generado por SAP)
+      GroupCode,         // Nombre del cliente
+      LicTradNum,           // Teléfono principal
+      ChannlBP, 
+      ListNum,
+      GroupNum,    
+      Series: Serie     // Serie del cliente (validada contra el catálogo)
+    };
+
+    //Realiza la solicitud POST al Service Layer de SAP para crear un nuevo Socio
+    const response = await sl.post(`BusinessPartners`, newBusinessPartner);
+
+    //Responder con exito si el socio fue creado correctamente en SAP
+    res.json({
+      succes: true,
+      message: 'Socio creado con exito en SAP.',
+      data: response 
+    });
+  } catch (error) {
+    console.error('Error al crear el socio:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Ocurrio un error al crear el socio.',
+      error: error.message
+    });
+  }
+});
+
 
 
 
