@@ -835,13 +835,13 @@ app.patch('/Pedido/:pedido', (req, res) => {
 })
 
 // Se anexan EndPoints para Ecommerce
-app.patch('/Cliente/:codigo', async (req, res) => {
+app.patch('/ClienteEC/:Codigo', async (req, res) => {
   try {
-    const {codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
+    const {Codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
     const { CardCode, CardName, Phone1 } = req.body; //Obtener los datos del cliente desde el cuerpo de la solicitud
 
     //Validar que el CardCode del cuerpo coincida con el parametro
-    if (codigo !== CardCode){
+    if (Codigo !== CardCode){
       return res.status(400).json({
         success: false,
         message: 'El CardCode en el cuerpo de la solicitud no coincide con el codigo de la URL.',
@@ -865,11 +865,12 @@ app.patch('/Cliente/:codigo', async (req, res) => {
     console.error('Error al actualizar el cliente:', error);
     res.status(500).json({
       success: false,
-      message: 'Ocurrio un error al actualizar el cliente.',
+      message: 'Ocurrió un error al actualizar el cliente.',
+      error: error.message  // Agregar más detalles del error
     });
   
   }
-});
+})
 
 
 
