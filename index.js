@@ -871,64 +871,41 @@ app.patch('/ClienteEC/:Codigo', async (req, res) => {
   
   }
 });
+
 app.post('/ClienteEC', async (req, res) => {
-  try{
-    //obtener los datos del cuerpo de la solicitud
-    const {CardName, GroupCode, LicTradNum, ChannlBP, ListNum, GroupNum, Serie} = req.body;
+  try {
+    // Obtener los datos del cuerpo de la solicitud
+    const { CardName, GroupCode, FederalTaxID, ChannelBP, PriceListNum, Series } = req.body;
 
-    //Definir los codigos de serie según la lista
-    const seriesCatalogo = {
-      MEDICO: 77,
-      USAPUB: 79,
-      Manual1: 1,
-      PUBLICO: 76,
-      Manual2: 2,
-      DISTRIB: 78,
-      PROSPECT: 164,
-      NAL_SERV: 82,
-      NAL_PROD: 81,
-      EXT_PROD: 83,
-      NAL_INS: 80,
-      EMP: 212
-    };
-
-    //Verificamos si la serie seleccionada existe en el catalogo
-    if(!seriesCatalogo[Serie]) {
-      return res.status(400).json({
-        success: false,
-        message: 'La serie no es valida.'
-      });
-    }
-
-    //Se crea el objeto que con los datos que seran enviados a sap
+    // Crear el objeto con los datos que serán enviados a SAP, sin CardCode
     const newBusinessPartner = {
-      CardName,         // Código del cliente (incluye serie y código generado por SAP)
-      GroupCode,         // Nombre del cliente
-      LicTradNum,           // Teléfono principal
-      ChannlBP, 
-      ListNum,
-      GroupNum,    
-      Series: Serie     // Serie del cliente (validada contra el catálogo)
+      CardName,       // Nombre del cliente
+      GroupCode,      // Código de grupo
+      FederalTaxID,   // RFC
+      ChannelBP,      // Canal del socio
+      PriceListNum,   // Lista de precios
+      Series          // Serie del cliente
     };
 
-    //Realiza la solicitud POST al Service Layer de SAP para crear un nuevo Socio
+    // Realiza la solicitud POST al Service Layer de SAP para crear un nuevo Socio
     const response = await sl.post(`BusinessPartners`, newBusinessPartner);
 
-    //Responder con exito si el socio fue creado correctamente en SAP
+    // Responder con éxito si el socio fue creado correctamente en SAP
     res.json({
-      succes: true,
-      message: 'Socio creado con exito en SAP.',
-      data: response 
+      success: true,
+      message: 'Socio creado con éxito en SAP.',
+      data: response // Devuelve la respuesta de SAP si es necesario
     });
   } catch (error) {
     console.error('Error al crear el socio:', error);
     res.status(500).json({
-      succes: false,
-      message: 'Ocurrio un error al crear el socio.',
+      success: false,
+      message: 'Ocurrió un error al crear el socio.',
       error: error.message
     });
   }
 });
+
 
 
 
