@@ -838,7 +838,7 @@ app.patch('/Pedido/:pedido', (req, res) => {
 app.patch('/ClienteEC/:Codigo', async (req, res) => {
   try {
     const {Codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
-    const { CardCode, CardName, Phone1, PriceListNum, Phone2, Cellular, FederalTaxID, EmailAddress, U_CEU_CPORTAL} = req.body; //Obtener los datos del cliente desde el cuerpo de la solicitud
+    const { CardCode, CardName, Phone1, PriceListNum, Phone2, Cellular, FederalTaxID, EmailAddress, U_CEU_CPORTAL, PayTermsGrpCode} = req.body; //Obtener los datos del cliente desde el cuerpo de la solicitud
 
     //Validar que el CardCode del cuerpo coincida con el parametro
     if (Codigo !== CardCode){
@@ -854,6 +854,7 @@ app.patch('/ClienteEC/:Codigo', async (req, res) => {
       CardName,
       Phone1,
       PriceListNum,
+      PayTermsGrpCode,
       Phone2,
       Cellular,
       FederalTaxID,
