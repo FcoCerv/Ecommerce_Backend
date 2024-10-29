@@ -936,7 +936,7 @@ app.get('/OrdenVentaEC/:DocDate', (req, res) => {
     });
   }
 });
-app.get('/OrdenVentaEC/:DocEntry', (req, res) => {
+app.get('/OrdenVentaEC/DocEntry/:DocEntry', (req, res) => {
   try {
     (async () => {
       // Obtener el parámetro DocEntry desde la URL
@@ -1065,7 +1065,7 @@ app.patch('/OrdenVentaEC/:DocEntry', (req, res) => {
     });
   }
 });
-app.post('/OrdenVentaEC/:DocEntry/Cancelar', (req, res) => {
+app.post('/OrdenVentaEC/Cancelar/:DocEntry', (req, res) => {
   try {
     (async () => {
       // Obtener el DocEntry desde el parámetro de la URL
