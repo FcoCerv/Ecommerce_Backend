@@ -878,7 +878,6 @@ app.patch('/ClienteEC/:Codigo', async (req, res) => {
   
   }
 });
-
 app.post('/ClienteEC', async (req, res) => {
   try {
     // Obtener los datos del cuerpo de la solicitud
@@ -912,6 +911,205 @@ app.post('/ClienteEC', async (req, res) => {
     });
   }
 });
+//Ordenes de Venta
+app.get('/OrdenVentaEC/:DocDate', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el parámetro de fecha desde la URL
+      let docDate = req.params.DocDate;
+      
+      // Hacer la solicitud GET al Service Layer de SAP Business One con los filtros y campos especificados
+      let ordenes = await sl.get(`Orders?$filter=DocDate eq '${docDate}'&$select=DocEntry,DocNum,CardName,DocumentStatus,Comments`);
+      
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: ordenes
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'A ocurrido un error, verifique bien la fecha ingresada ejemplo: 2024-11-29.'
+    });
+  }
+});
+app.get('/OrdenVentaEC/:DocEntry', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el parámetro DocEntry desde la URL
+      let docEntry = req.params.DocEntry;
+      
+      // Hacer la solicitud GET al Service Layer de SAP Business One para obtener la orden de venta específica
+      let orden = await sl.get(`Orders(${docEntry})`);
+      
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: orden
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'A ocurrido un error, verifique que el valor es correcto'
+    });
+  }
+});
+app.post('/OrdenVentaEC', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el cuerpo de la solicitud
+      const orderData = req.body; // Esto toma el body JSON enviado desde Postman o cliente.
+
+      // Realizar la solicitud POST al Service Layer para crear la orden de venta
+      let response = await sl.post('Orders', orderData);
+
+      // Responder con éxito si la creación fue exitosa
+      res.json({
+        success: true,
+        message: 'Orden de venta creada exitosamente.',
+        data: response
+      });
+    })();
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+    
+    // Verificar y traducir el mensaje de error al español
+    let errorMessage = 'Ocurrió un error al procesar su solicitud.';
+
+    // Errores específicos y sus posibles causas
+    if (error.response && error.response.data) {
+      const sapError = error.response.data;
+      
+      if (sapError.code === -4002) {
+        errorMessage = 'Error en el código del socio (CardCode). Verifique que el código de cliente es válido y existe en el sistema.';
+      } else if (sapError.code === -2028) {
+        errorMessage = 'El código de artículo (ItemCode) no es válido o no se encuentra en el sistema. Verifique los artículos en la orden de venta.';
+      } else if (sapError.code === -5002) {
+        errorMessage = 'Empleado de ventas no válido. Verifique que el código de empleado esté activo y autorizado para ventas.';
+      } else if (sapError.message && sapError.message.value.includes('DiscountPercent')) {
+        errorMessage = 'Error en el porcentaje de descuento. Verifique que el valor de "DiscountPercent" sea un número válido.';
+      } else if (sapError.message && sapError.message.value.includes('WarehouseCode')) {
+        errorMessage = 'El código de almacén es inválido. Verifique que el almacén especificado existe y es accesible.';
+      } else if (sapError.message && sapError.message.value.includes('TaxCode')) {
+        errorMessage = 'El código de impuesto no es válido. Verifique que el código de impuesto (TaxCode) es correcto.';
+      } else {
+        // Otros errores que no se hayan especificado
+        errorMessage = `Error desconocido: ${sapError.message.value}`;
+      }
+    }
+
+    // Enviar la respuesta de error en español
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+});
+app.patch('/OrdenVentaEC/:DocEntry', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el DocEntry desde el parámetro de la URL
+      const docEntry = req.params.DocEntry;
+
+      // Obtener el cuerpo de la solicitud con los datos a actualizar
+      const updateData = req.body;
+
+      // Realizar la solicitud PATCH al Service Layer para actualizar la orden de venta
+      let response = await sl.patch(`Orders(${docEntry})`, updateData);
+
+      // Responder con éxito si la actualización fue exitosa
+      res.json({
+        success: true,
+        message: 'Orden de venta actualizada exitosamente.',
+        data: response
+      });
+    })();
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+    
+    // Verificar y traducir el mensaje de error al español
+    let errorMessage = 'Ocurrió un error al procesar su solicitud.';
+
+    // Errores específicos y sus posibles causas
+    if (error.response && error.response.data) {
+      const sapError = error.response.data;
+      
+      if (sapError.code === -4002) {
+        errorMessage = 'Error en el código de la razón social (U_Modelo). Verifique que el valor sea correcto y esté registrado.';
+      } else if (sapError.code === -2028) {
+        errorMessage = 'El código de artículo (ItemCode) no es válido o no se encuentra en el sistema. Verifique los artículos en la orden de venta.';
+      } else if (sapError.code === -5002) {
+        errorMessage = 'Empleado de ventas no válido. Verifique que el código de empleado esté activo y autorizado para ventas.';
+      } else if (sapError.message && sapError.message.value.includes('DiscountPercent')) {
+        errorMessage = 'Error en el porcentaje de descuento. Verifique que el valor de "DiscountPercent" sea un número válido.';
+      } else if (sapError.message && sapError.message.value.includes('WarehouseCode')) {
+        errorMessage = 'El código de almacén es inválido. Verifique que el almacén especificado existe y es accesible.';
+      } else if (sapError.message && sapError.message.value.includes('TaxCode')) {
+        errorMessage = 'El código de impuesto no es válido. Verifique que el código de impuesto (TaxCode) es correcto.';
+      } else {
+        // Otros errores que no se hayan especificado
+        errorMessage = `Error desconocido: ${sapError.message.value}`;
+      }
+    }
+
+    // Enviar la respuesta de error en español
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+});
+app.post('/OrdenVentaEC/:DocEntry/Cancelar', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el DocEntry desde el parámetro de la URL
+      const docEntry = req.params.DocEntry;
+
+      // Realizar la solicitud POST al Service Layer para cancelar la orden de venta
+      let response = await sl.post(`Orders(${docEntry})/Cancel`);
+
+      // Responder con éxito si la cancelación fue exitosa
+      res.json({
+        success: true,
+        message: 'Orden de venta cancelada exitosamente.',
+        data: response
+      });
+    })();
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+    
+    // Verificar y traducir el mensaje de error al español
+    let errorMessage = 'Ocurrió un error al procesar su solicitud de cancelación.';
+
+    // Errores específicos y sus posibles causas
+    if (error.response && error.response.data) {
+      const sapError = error.response.data;
+
+      if (sapError.message && sapError.message.value.includes('already closed or canceled')) {
+        errorMessage = 'La orden de venta ya está cerrada o cancelada.';
+      } else if (sapError.message && sapError.message.value.includes('authorization')) {
+        errorMessage = 'No tiene autorización para cancelar esta orden de venta.';
+      } else {
+        // Otros errores que no se hayan especificado
+        errorMessage = `Error desconocido: ${sapError.message.value}`;
+      }
+    }
+
+    // Enviar la respuesta de error en español
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+});
+
+
 
 
 
@@ -1068,6 +1266,7 @@ var server = https.createServer(options, app).listen(8069, function () {
   console.log("Express server listening on port " + 8069);
 });
 
-/*app.listen(8081, () => {
-  console.log('Escuchando puerto: ', 81)
-})*/
+
+// app.listen(8081, () => {
+//   console.log('Escuchando puerto: ', 81)
+// })

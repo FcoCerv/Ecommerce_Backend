@@ -1,6 +1,7 @@
 {
   "name": "backend-admin-clinic",
   "version": "1.0.0",
+  "type": "module",
   "babel": {
     "presets": [
       "env"
