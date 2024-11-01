@@ -835,6 +835,7 @@ app.patch('/Pedido/:pedido', (req, res) => {
 })
 
 // Se anexan EndPoints para Ecommerce
+//Clientes
 app.patch('/ClienteEC/:Codigo', async (req, res) => {
   try {
     const {Codigo} = req.params; //Obtener el codigo del cliente desde los parametros de la URL
@@ -911,6 +912,11 @@ app.post('/ClienteEC', async (req, res) => {
     });
   }
 });
+//Direcciones Clientes
+
+
+
+
 //Ordenes de Venta
 app.get('/OrdenVentaEC/:DocDate', (req, res) => {
   try {
@@ -957,6 +963,37 @@ app.get('/OrdenVentaEC/DocEntry/:DocEntry', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'A ocurrido un error, verifique que el valor es correcto'
+    });
+  }
+});
+app.get('/OrdenVentaEC/CardCode/:CardCode', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el parámetro CardCode desde la URL
+      let cardCode = req.params.CardCode;
+      
+      // Hacer la solicitud GET al Service Layer de SAP Business One para obtener las órdenes de venta filtradas por CardCode
+      let ordenes = await sl.get(`Orders?$filter=CardCode eq '${cardCode}'`);
+
+      // Verificar si se encontraron resultados
+      if (ordenes.value && ordenes.value.length > 0) {
+        res.json({
+          success: true,
+          data: ordenes.value
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'No se encontraron órdenes de venta para el CardCode proporcionado'
+        });
+      }
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error, verifique que el valor es correcto'
     });
   }
 });
