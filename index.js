@@ -915,6 +915,34 @@ app.post('/ClienteEC', async (req, res) => {
 //Direcciones Clientes
 
 
+//Articulos en stock
+app.get('/ArticulosEC', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el número de página desde la query string (por defecto, la página es 1)
+      let page = parseInt(req.query.page) || 1;
+      
+      // Calcular el offset (inicio de los registros) basado en la página actual
+      let offset = (page - 1) * 100;
+      
+      // Hacer la solicitud GET al Service Layer de SAP Business One con los filtros y campos especificados
+      let articulos = await sl.get(`Items?$filter=QuantityOnStock gt 1&$top=100&$skip=${offset}&$select=ItemCode,ItemName,QuantityOnStock,Price`);
+      
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: articulos
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
 
 
 //Ordenes de Venta
