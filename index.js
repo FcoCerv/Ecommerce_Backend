@@ -1115,8 +1115,14 @@ app.get('/ArticulosEC', (req, res) => {
       let offset = (page - 1) * 50;
       
       // Hacer la solicitud GET al Service Layer de SAP Business One con los filtros y campos especificados
+<<<<<<< HEAD
       let articulos = await sl.get(`Items?$filter=Frozen eq 'tNO' and QuantityOnStock gt 1&$top=100&$skip=${offset}`);
 
+=======
+      let articulos = await sl.get(`Items?$filter=QuantityOnStock gt 1&$top=50&$skip=${offset}`);
+
+      
+>>>>>>> a831052e7f8d662c8608a9c89c4f6aeef0afa19c
       // Enviar la respuesta en formato JSON con los datos obtenidos
       res.json({
         success: true,
@@ -1132,6 +1138,143 @@ app.get('/ArticulosEC', (req, res) => {
     });
   }
 });
+
+//Endpoints para las Entregas
+//https://engel.powerhost.com.mx:8069/OrdenVentaBPCardCodeStatusOrder?CardCode=CND00529
+app.get('/OrdenVentaBPCardCodeStatusOrder', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el CardCode desde los parámetros de consulta
+      const cardCode = req.query.CardCode;
+
+      // Verificar que el CardCode esté presente
+      if (!cardCode) {
+        return res.status(400).json({
+          success: false,
+          message: 'El parámetro CardCode es obligatorio.'
+        });
+      }
+
+      // Hacer la solicitud GET al Service Layer de SAP Business One con el CardCode proporcionado
+      let orders = await sl.get(`Orders?$filter=CardCode eq '${cardCode}' and DocumentStatus eq 'bost_Open'`);
+
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: orders
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
+//https://engel.powerhost.com.mx:8069/EntregaECDocEntry/403627
+app.get('/EntregaECDocEntry/:docEntry', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el DocEntry desde los parámetros de la URL
+      const docEntry = req.params.docEntry;
+
+      // Hacer la solicitud GET al Service Layer de SAP Business One con el DocEntry especificado
+      let deliveryNote = await sl.get(`DeliveryNotes(${docEntry})`);
+
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: deliveryNote
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
+//https://engel.powerhost.com.mx:8069/ProductoECItemCode/ALCP
+app.get('/ProductoECItemCode/:itemCode', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el ItemCode desde los parámetros de la URL
+      const itemCode = req.params.itemCode;
+
+      // Hacer la solicitud GET al Service Layer de SAP Business One con el ItemCode especificado
+      let item = await sl.get(`Items('${itemCode}')`);
+
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: item
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
+//https://engel.powerhost.com.mx:8069/LotesECItemCode/ALCP
+app.get('/LotesECItemCode/:itemCode', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el ItemCode desde los parámetros de la URL
+      const itemCode = req.params.itemCode;
+
+      // Hacer la solicitud GET al Service Layer de SAP Business One con el filtro ItemCode especificado
+      let batchDetails = await sl.get(`BatchNumberDetails?$filter=ItemCode eq '${itemCode}'`);
+
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: batchDetails
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
+https://engel.powerhost.com.mx:8069/CreacionEntregaEC
+app.post('/CreacionEntregaEC', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el cuerpo de la solicitud (datos de la entrega)
+      const deliveryData = req.body;
+
+      // Realizar la solicitud POST al Service Layer de SAP Business One con el cuerpo de la solicitud
+      let response = await sl.post('DeliveryNotes', deliveryData);
+
+      // Enviar la respuesta en formato JSON con el resultado de la creación
+      res.json({
+        success: true,
+        message: 'Entrega creada exitosamente.',
+        data: response
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al crear la entrega:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al crear la entrega.'
+    });
+  }
+});
+
 
 
 //Ordenes de Venta
