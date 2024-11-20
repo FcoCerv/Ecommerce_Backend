@@ -882,16 +882,28 @@ app.patch('/ClienteEC/:Codigo', async (req, res) => {
 app.post('/ClienteEC', async (req, res) => {
   try {
     // Obtener los datos del cuerpo de la solicitud
-    const { CardName, GroupCode, FederalTaxID, ChannelBP, PriceListNum, Series } = req.body;
+    const { CardName, CardType, GroupCode, FederalTaxID, ChannelBP, Phone1, Phone2, Cellular, U_CEU_CPORTAL, EmailAddress, Website, PriceListNum, Series, U_B1SYS_MainUsage, U_NACIONALIDAD, SalesPersonCode, ContactPerson} = req.body;
 
     // Crear el objeto con los datos que serán enviados a SAP, sin CardCode
     const newBusinessPartner = {
       CardName,       // Nombre del cliente
+      CardType,
       GroupCode,      // Código de grupo
       FederalTaxID,   // RFC
       ChannelBP,      // Canal del socio
+      Phone1,
+      Phone2,
+      Cellular,
+      U_CEU_CPORTAL,
+      EmailAddress,
+      Website,
       PriceListNum,   // Lista de precios
-      Series          // Serie del cliente
+      Series,          // Serie del cliente
+      U_B1SYS_MainUsage,
+      U_NACIONALIDAD,
+      SalesPersonCode,
+      ContactPerson
+
     };
 
     // Realiza la solicitud POST al Service Layer de SAP para crear un nuevo Socio
@@ -1097,13 +1109,6 @@ app.get('/ConsultaStockPorLote/:itemCode', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
 //Articulos en stock
 app.get('/ArticulosEC', (req, res) => {
   try {
@@ -1115,14 +1120,8 @@ app.get('/ArticulosEC', (req, res) => {
       let offset = (page - 1) * 50;
       
       // Hacer la solicitud GET al Service Layer de SAP Business One con los filtros y campos especificados
-<<<<<<< HEAD
       let articulos = await sl.get(`Items?$filter=Frozen eq 'tNO' and QuantityOnStock gt 1&$top=100&$skip=${offset}`);
 
-=======
-      let articulos = await sl.get(`Items?$filter=QuantityOnStock gt 1&$top=50&$skip=${offset}`);
-
-      
->>>>>>> a831052e7f8d662c8608a9c89c4f6aeef0afa19c
       // Enviar la respuesta en formato JSON con los datos obtenidos
       res.json({
         success: true,
@@ -1198,6 +1197,34 @@ app.get('/EntregaECDocEntry/:docEntry', (req, res) => {
     });
   }
 });
+
+// https://engel.powerhost.com.mx:8069/EntregaECCardCode/CND00529
+app.get('/EntregaECCardCode/:cardCode', (req, res) => {
+  try {
+    (async () => {
+      // Obtener el CardCode desde los parámetros de la URL
+      const cardCode = req.params.cardCode;
+
+      // Hacer la solicitud GET al Service Layer de SAP Business One con el filtro de CardCode
+      let deliveryNotes = await sl.get(`DeliveryNotes?$filter=CardCode eq '${cardCode}'`);
+
+      // Enviar la respuesta en formato JSON con los datos obtenidos
+      res.json({
+        success: true,
+        data: deliveryNotes
+      });
+    })();
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al procesar el request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ha ocurrido un error al procesar la solicitud.'
+    });
+  }
+});
+
+
 //https://engel.powerhost.com.mx:8069/ProductoECItemCode/ALCP
 app.get('/ProductoECItemCode/:itemCode', (req, res) => {
   try {
@@ -1274,8 +1301,6 @@ app.post('/CreacionEntregaEC', (req, res) => {
     });
   }
 });
-
-
 
 //Ordenes de Venta
 app.get('/OrdenVentaEC/:DocDate', (req, res) => {
@@ -1506,6 +1531,141 @@ app.post('/OrdenVentaEC/Cancelar/:DocEntry', (req, res) => {
   }
 });
 
+
+//Contabilidad
+/*Endpoint para generar facturas de proveedores*/
+app.post('/FacturasProveedores', async (req, res) => {
+  try {
+    const {
+      DocType,
+      CardCode,
+      DocDate,
+      DocDueDate,
+      TaxDate,
+      Comments,
+      NumAtCard,
+      DocumentLines
+    } = req.body;
+
+    if (!CardCode || !DocDate || !DocDueDate || !TaxDate || !DocumentLines || DocumentLines.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos incompletos. Verifique el cuerpo de la solicitud.'
+      });
+    }
+
+    const purchaseInvoiceData = {
+      DocType: DocType || 'dDocument_Service',
+      CardCode,
+      DocDate,
+      DocDueDate,
+      TaxDate,
+      Comments,
+      NumAtCard,
+      DocumentLines: DocumentLines.map(line => ({
+        ItemDescription: line.ItemDescription,
+        LineType: line.LineType || 'dlt_Regular',
+        AccountCode: line.AccountCode,
+        LineTotal: line.LineTotal,
+        TaxCode: line.TaxCode,
+        ProjectCode: line.ProjectCode || ""
+      }))
+    };
+
+    // Enviar solicitud al Service Layer
+    const response = await sl.post('PurchaseInvoices', purchaseInvoiceData);
+
+    // Imprimir toda la respuesta para inspección
+    console.log('Respuesta del Service Layer:', response.data);
+
+    // Capturar el DocNum de la respuesta
+    const docNum = response.data ? response.data.DocNum : null;
+
+    // Responder con éxito incluyendo el DocNum
+    res.json({
+      success: true,
+      message: 'Factura de proveedores creada exitosamente.',
+      DocNum: docNum // Incluir el número de documento en la respuesta
+    });
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+
+    let errorMessage = 'Ocurrió un error al crear la factura de proveedores.';
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar al servidor. Verifique que esté en funcionamiento.';
+    } else if (error.response && error.response.data) {
+      const sapError = error.response.data;
+      errorMessage = `Error de SAP: ${sapError.message.value}`;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+});
+
+
+/*Endpoint para obtener facturas filtradas por CardCode y NumAtCard*/
+app.get('/FacturasProveedores', async (req, res) => {
+  try {
+    // Depurar los parámetros recibidos
+    console.log('Parámetros recibidos:', req.query);
+
+    // Obtener los filtros desde los parámetros de la solicitud
+    const { CardCode, NumAtCard } = req.query;
+
+    // Validar que se pasen los parámetros necesarios
+    if (!CardCode || !NumAtCard) {
+      return res.status(400).json({
+        success: false,
+        message: `Faltan parámetros obligatorios: ${
+          !CardCode ? 'CardCode ' : ''
+        }${!NumAtCard ? 'NumAtCard' : ''}`,
+      });
+    }
+
+    // Construir la URL del filtro para el GET
+    const filter = `CardCode eq '${CardCode}' and NumAtCard eq '${NumAtCard}'`;
+
+    console.log(`Realizando GET con filtro: ${filter}`);
+
+    // Realizar la solicitud al Service Layer
+    const response = await sl.get(`PurchaseInvoices?$filter=${filter}`);
+
+    // Verificar si se encontraron resultados
+    if (!response.data || !response.data.value || response.data.value.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No se encontraron facturas con los filtros proporcionados.',
+      });
+    }
+
+    // Retornar las facturas obtenidas
+    res.json({
+      success: true,
+      message: 'Facturas obtenidas correctamente.',
+      data: response.data.value,
+    });
+  } catch (error) {
+    console.error('Error al obtener las facturas:', error);
+
+    let errorMessage = 'Ocurrió un error al obtener las facturas.';
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage =
+        'No se pudo conectar al servidor. Verifique que esté en funcionamiento.';
+    } else if (error.response && error.response.data) {
+      const sapError = error.response.data;
+      errorMessage = `Error de SAP: ${sapError.message.value}`;
+    }
+
+    // Responder con error
+    res.status(500).json({
+      success: false,
+      message: errorMessage,
+    });
+  }
+});
 
 
 
